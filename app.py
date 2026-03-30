@@ -142,14 +142,15 @@ def find_match(reg_date, reg_amount, pool, tolerance_days=DATE_TOLERANCE_DAYS):
     return False
 
 
-def find_check_match(check_num, reg_amount, pool):
-    """Find and remove a matching (check_number, amount) entry from the GL check pool.
+def find_check_match(check_num, pool):
+    """Find and remove a matching check number entry from the GL check pool.
 
-    A match requires the same check number AND the same amount.
+    A match requires the same check number only (amounts may differ between
+    the register and GL).
     Returns True if a match was found and consumed.
     """
     for i, (gl_check_num, gl_amount) in enumerate(pool):
-        if gl_check_num == check_num and gl_amount == reg_amount:
+        if gl_check_num == check_num:
             pool.pop(i)
             return True
     return False
@@ -204,8 +205,8 @@ def find_missing_and_highlight(register_wb, gl_debits, gl_credits, gl_checks):
                 amt = round(float(debit_val), 2)
                 if amt != 0:
                     if check_num:
-                        # Checks: match by check number + amount
-                        if not find_check_match(check_num, amt, gl_check_pool):
+                        # Checks: match by check number only
+                        if not find_check_match(check_num, gl_check_pool):
                             is_missing = True
                     else:
                         # Non-checks: match by amount + date
